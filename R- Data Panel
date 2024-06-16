@@ -1,0 +1,40 @@
+setwd("C:/Users/ACER/Documents")
+library(plm)
+dp = read.csv("lemineral.csv",sep = ";")
+common = plm(dp$IPM~dp$TPAK+dp$Kepadatan.Penduduk+dp$Gini.Ratio+dp$Produktivitas+dp$TPT+dp$PDRB.KAPITA,data = dp,model = "pooling")
+fix = plm(dp$IPM~dp$TPAK+dp$Kepadatan.Penduduk+dp$Gini.Ratio+dp$Produktivitas+dp$TPT+dp$PDRB.KAPITA,data = dp,model = "within")
+rand = plm(dp$IPM~dp$TPAK+dp$Kepadatan.Penduduk+dp$Gini.Ratio+dp$Produktivitas+dp$TPT+dp$PDRB.KAPITA,data = dp,model = "random",random.method = "nerlove")
+
+#UJI CHOW
+#H0 : CEM lebih baik FEM
+#H1 : FEM lebih baik CEM 
+pooltest(common,fix)
+#P-value = 0.5331 > Alpha = 0.05, H0 gagal tolak, maka CEM lebih baik FEM
+
+#UJI HAUSMAN
+#H0 : REM lebih baik FEM
+#H1 : FEM lebih baik REM
+phtest(fix,rand)
+#P-value = 0.9745 > Alpha = 0.05,H0 gagal tolak, maka REM lebih baik FEM
+
+#UJI LAGRANGE MULTIPLIER
+#H0 : CEM lebih baik REM
+#H1 : REM lebih baik CEM
+plmtest(rand)
+#P-value = 0.7781 > Alpha = 0.05, H0 Gagal Tolak, maka CEM lebih baik dari REM
+summary(common)
+
+#AUTOKORELASI
+#H0 : Tidak ada Korelasi tiap Galat
+#H1 : Ada korelasi tiap Galat
+pbgtest(common,order = 2)
+#Pvalue = 0.4821 > Alpha = 0.05, Gagal Tolak H0, Tidak ada Korelasi tiap Galat
+
+#HOMOSKEDASITITAS
+#H0 : homoskedastisitas 
+#H1 : tidak homoskedastisitas
+bptest(common)
+#Pvalue = 0.006 < Alpha = 0.05, Tolak H0, Tidak Homoskedatistitas atau heteroskedatistitas
+
+#UJI OVERALL
+summary(common)
